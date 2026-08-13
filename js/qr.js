@@ -1,7 +1,7 @@
 /* TaaraByHK — dynamic UPI payment QR
    Update UPI_ID and MERCHANT_NAME to the store's real UPI handle. */
 
-const UPI_ID = "taarabyhk@okaxis"; // TODO: replace with the real UPI ID for the store
+const UPI_ID = "sheshang304-2@okicici"; // TODO: replace with the real UPI ID for the store
 const MERCHANT_NAME = "TaaraByHK";
 
 function buildUpiLink(amount, note) {
