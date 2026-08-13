@@ -10,8 +10,8 @@
       it only has the limited permissions granted by the SQL policies.
    ------------------------------------------------------------ */
 
-const SUPABASE_URL = "https://YOUR-PROJECT-REF.supabase.co"; // TODO: replace
-const SUPABASE_ANON_KEY = "YOUR-ANON-PUBLIC-KEY"; // TODO: replace
+const SUPABASE_URL = "https://xqlzuliqckqghjamhcuv.supabase.co"; // TODO: replace
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhxbHp1bGlxY2txZ2hqYW1oY3V2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY2NDY1NDgsImV4cCI6MjEwMjIyMjU0OH0.kt2qtb78D2xbWNFrg7GSnQ4DOGFgMiJbMw41MPMkdVM"; // TODO: replace
 
 let supabaseClient = null;
 function getSupabase() {
