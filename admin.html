@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin — TaaraByHK</title>
+<link rel="icon" type="image/png" href="images/brand/favicon-32.png">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body data-nav="">
+
+<header class="site-header" id="site-header"></header>
+
+<main class="wrap admin-shell">
+  <div id="loginBox" class="admin-login">
+    <h2 style="margin-bottom:18px;">Admin Login</h2>
+    <div class="form-field" style="text-align:left;"><label>Email</label><input id="adminEmail" type="email"></div>
+    <div class="form-field" style="text-align:left;"><label>Password</label><input id="adminPassword" type="password"></div>
+    <button class="btn btn-gold btn-block" id="loginBtn">Log In</button>
+    <p id="loginMsg" style="font-size:.8rem;color:var(--ink-soft);margin-top:12px;"></p>
+    <p style="font-size:.76rem;color:var(--ink-soft);margin-top:20px;">Admin accounts are created in your Supabase dashboard under Authentication → Users. No public sign-up exists.</p>
+  </div>
+
+  <div id="dashBox" style="display:none;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;">
+      <h2>Orders</h2>
+      <button class="btn btn-outline" id="logoutBtn">Log Out</button>
+    </div>
+    <div class="filter-bar">
+      <button class="filter-chip active" data-status="all">All</button>
+      <button class="filter-chip" data-status="pending">Pending</button>
+      <button class="filter-chip" data-status="verified">Verified</button>
+      <button class="filter-chip" data-status="shipped">Shipped</button>
+    </div>
+    <div style="overflow-x:auto;">
+      <table class="orders">
+        <thead><tr><th>Reference</th><th>Customer</th><th>Items</th><th>Total</th><th>Status</th><th>Actions</th></tr></thead>
+        <tbody id="ordersBody"></tbody>
+      </table>
+    </div>
+  </div>
+</main>
+
+<footer class="site-footer" id="site-footer" style="margin-top:40px;"></footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="js/main.js"></script>
+<script src="js/products.js"></script>
+<script src="js/supabase-config.js"></script>
+<script>
+  let allOrders = [];
+  let statusFilter = "all";
+
+  async function checkSession() {
+    const sb = getSupabase();
+    if (!sb) {
+      document.getElementById("loginMsg").textContent = "Supabase isn't configured yet — set it up in js/supabase-config.js first.";
+      return;
+    }
+    const { data } = await sb.auth.getSession();
+    if (data.session) showDashboard();
+  }
+
+  async function showDashboard() {
+    document.getElementById("loginBox").style.display = "none";
+    document.getElementById("dashBox").style.display = "block";
+    await loadOrders();
+  }
+
+  async function loadOrders() {
+    const sb = getSupabase();
+    const { data, error } = await sb.from("orders").select("*").order("created_at", { ascending: false });
+    if (error) { document.getElementById("ordersBody").innerHTML = `<tr><td colspan="6">Couldn't load orders: ${error.message}</td></tr>`; return; }
+    allOrders = data || [];
+    renderOrders();
+  }
+
+  function renderOrders() {
+    const list = statusFilter === "all" ? allOrders : allOrders.filter((o) => (o.status || "pending") === statusFilter);
+    const body = document.getElementById("ordersBody");
+    if (list.length === 0) { body.innerHTML = `<tr><td colspan="6">No orders here yet.</td></tr>`; return; }
+    body.innerHTML = list.map((o) => {
+      const status = o.status || "pending";
+      let items = [];
+      try { items = typeof o.items === "string" ? JSON.parse(o.items) : (o.items || []); } catch (e) {}
+      const itemsText = items.map((i) => `${i.name} ×${i.qty}`).join(", ");
+      return `
+        <tr>
+          <td><span style="font-family:monospace;">${o.order_code}</span></td>
+          <td>${o.customer_name}<br><span style="color:var(--ink-soft);font-size:.78rem;">${o.phone}</span></td>
+          <td style="max-width:220px;">${itemsText}</td>
+          <td>₹${Number(o.subtotal).toLocaleString("en-IN")}</td>
+          <td><span class="status-pill status-${status}">${status}</span></td>
+          <td class="admin-actions">
+            ${status !== "verified" ? `<button data-set="verified" data-id="${o.id}">Verify</button>` : ""}
+            ${status !== "shipped" ? `<button data-set="shipped" data-id="${o.id}">Mark Shipped</button>` : ""}
+          </td>
+        </tr>`;
+    }).join("");
+    body.querySelectorAll("[data-set]").forEach((btn) => {
+      btn.addEventListener("click", async () => {
+        const sb = getSupabase();
+        await sb.from("orders").update({ status: btn.dataset.set }).eq("id", btn.dataset.id);
+        await loadOrders();
+      });
+    });
+  }
+
+  document.addEventListener("DOMContentLoaded", () => {
+    checkSession();
+    document.getElementById("loginBtn").addEventListener("click", async () => {
+      const sb = getSupabase();
+      if (!sb) return;
+      const email = document.getElementById("adminEmail").value;
+      const password = document.getElementById("adminPassword").value;
+      const { error } = await sb.auth.signInWithPassword({ email, password });
+      if (error) { document.getElementById("loginMsg").textContent = error.message; return; }
+      showDashboard();
+    });
+    document.getElementById("logoutBtn").addEventListener("click", async () => {
+      const sb = getSupabase();
+      await sb.auth.signOut();
+      location.reload();
+    });
+    document.querySelectorAll("[data-status]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll("[data-status]").forEach((b) => b.classList.remove("active"));
+        btn.classList.add("active");
+        statusFilter = btn.dataset.status;
+        renderOrders();
+      });
+    });
+  });
+</script>
+</body>
+</html>

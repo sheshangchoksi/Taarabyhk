@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TaaraByHK — Hand-strung Jewellery & Charms</title>
+<meta name="description" content="Hand-finished bracelets, pearl charms and everyday fine jewellery, strung and packed in small batches. Shop TaaraByHK.">
+<link rel="icon" type="image/png" href="images/brand/favicon-32.png">
+<link rel="apple-touch-icon" href="images/brand/favicon-180.png">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body data-nav="home">
+
+<header class="site-header" id="site-header"></header>
+
+<section class="hero">
+  <div class="hero-copy">
+    <span class="eyebrow on-dark">Hand-strung, small batch</span>
+    <h1>Jewellery for the <em>everyday</em> ritual of getting dressed.</h1>
+    <p>Evil-eye bracelets, pearl bag charms and waterproof pendants — designed in Vadodara, strung bead by bead, and packed to travel anywhere your bag goes.</p>
+    <div style="display:flex;gap:14px;flex-wrap:wrap;">
+      <a href="shop.html" class="btn btn-gold">Shop the Edit</a>
+      <a href="shop.html?category=Bracelets" class="btn btn-outline-dark">Bracelets</a>
+    </div>
+  </div>
+  <div class="hero-figure">
+    <img src="images/products/evil-eye-pearl-bracelet.jpg" alt="Rose quartz evil-eye bracelet set on a cream leather bag">
+    <div class="hero-price-tag"><span>Bracelet Set</span>From ₹150</div>
+  </div>
+</section>
+
+<main>
+  <section class="section tight wrap">
+    <div class="thread loose"></div>
+    <div class="section-head">
+      <div>
+        <span class="eyebrow">Browse by piece</span>
+        <h2 style="margin-top:8px;">Find your case</h2>
+      </div>
+    </div>
+    <div class="case-strip" id="caseStrip">
+      <a class="case-cell" href="shop.html"><span class="glyph">${'ICON_ALL'}</span><span>All Jewellery</span></a>
+      <a class="case-cell" href="shop.html?category=Bracelets"><span class="glyph">${'ICON_BRACELET'}</span><span>Bracelets</span></a>
+      <a class="case-cell" href="shop.html?category=Necklaces"><span class="glyph">${'ICON_NECKLACE'}</span><span>Necklaces</span></a>
+      <a class="case-cell" href="shop.html?category=Charms"><span class="glyph">${'ICON_CHARM'}</span><span>Charms</span></a>
+      <a class="case-cell" href="shop.html?category=Keychains"><span class="glyph">${'ICON_KEYCHAIN'}</span><span>Keychains</span></a>
+    </div>
+  </section>
+
+  <section class="section wrap">
+    <div class="section-head">
+      <div>
+        <span class="eyebrow">New in</span>
+        <h2 style="margin-top:8px;">This week's edit</h2>
+      </div>
+      <a href="shop.html" class="view-all">View all →</a>
+    </div>
+    <div class="product-grid featured" id="featuredGrid">
+      <div class="card"><div class="card-media skeleton"></div></div>
+      <div class="card"><div class="card-media skeleton"></div></div>
+      <div class="card"><div class="card-media skeleton"></div></div>
+    </div>
+  </section>
+
+  <section class="story-band">
+    <div class="story-copy">
+      <span class="eyebrow">The studio</span>
+      <h2>Strung bead by bead, checked by hand.</h2>
+      <p>Every bracelet leaves our worktable strung on the actual thread it's sold on — no machine-batching. We test each clasp, count each bead, and pack it the same day it's finished. If a piece doesn't meet that bar, it doesn't go out.</p>
+      <a href="shop.html" class="btn btn-outline" style="margin-top:22px;">Explore the collection</a>
+    </div>
+    <div class="story-media">
+      <img src="images/products/soft-girl-phone-charm.jpg" alt="Pearl phone charm being finished by hand">
+    </div>
+  </section>
+
+  <section class="section wrap">
+    <div class="thread loose"></div>
+    <div class="section-head">
+      <div>
+        <span class="eyebrow">Gifting</span>
+        <h2 style="margin-top:8px;">Small enough to gift, nice enough to keep</h2>
+      </div>
+      <a href="shop.html?category=Keychains" class="view-all">Shop keychains →</a>
+    </div>
+    <div class="product-grid" id="giftGrid">
+      <div class="card"><div class="card-media skeleton"></div></div>
+      <div class="card"><div class="card-media skeleton"></div></div>
+    </div>
+  </section>
+</main>
+
+<footer class="site-footer" id="site-footer"></footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+<script src="js/main.js"></script>
+<script src="js/products.js"></script>
+<script src="js/cart.js"></script>
+<script>
+  // replace icon placeholders now that iconSVG() is available
+  document.addEventListener("DOMContentLoaded", () => {
+    const strip = document.getElementById("caseStrip");
+    strip.innerHTML = strip.innerHTML
+      .replace(/\$\{'ICON_ALL'\}/g, iconSVG("all"))
+      .replace(/\$\{'ICON_BRACELET'\}/g, iconSVG("bracelet"))
+      .replace(/\$\{'ICON_NECKLACE'\}/g, iconSVG("necklace"))
+      .replace(/\$\{'ICON_CHARM'\}/g, iconSVG("charm"))
+      .replace(/\$\{'ICON_KEYCHAIN'\}/g, iconSVG("keychain"));
+
+    getProducts().then((products) => {
+      const featured = products.filter((p) => p.featured);
+      const rest = products.filter((p) => !p.featured);
+      const featuredGrid = document.getElementById("featuredGrid");
+      featuredGrid.innerHTML = featured.slice(0, 4).map((p) => productCardHTML(p)).join("");
+      wireQuickAdd(featuredGrid);
+
+      const giftGrid = document.getElementById("giftGrid");
+      const gifts = products.filter((p) => p.category === "Keychains").concat(rest).slice(0, 4);
+      giftGrid.innerHTML = gifts.map((p) => productCardHTML(p)).join("");
+      wireQuickAdd(giftGrid);
+    });
+  });
+</script>
+</body>
+</html>

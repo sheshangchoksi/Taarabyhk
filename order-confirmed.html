@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Order Confirmed — TaaraByHK</title>
+<link rel="icon" type="image/png" href="images/brand/favicon-32.png">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body data-nav="">
+
+<header class="site-header" id="site-header"></header>
+
+<main class="wrap">
+  <div class="confirm-box" id="confirmBox">
+    <div class="check-circle">✓</div>
+    <h1 style="margin-bottom:10px;">Thank you!</h1>
+    <p style="color:var(--ink-soft);">We've received your order and will confirm your payment shortly.</p>
+    <div id="orderDetails" style="margin-top:24px;"></div>
+    <a href="shop.html" class="btn btn-outline" style="margin-top:26px;">Continue Shopping</a>
+  </div>
+</main>
+
+<footer class="site-footer" id="site-footer" style="margin-top:40px;"></footer>
+
+<script src="js/main.js"></script>
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const raw = sessionStorage.getItem("taara_last_order");
+    if (!raw) return;
+    const o = JSON.parse(raw);
+    document.getElementById("orderDetails").innerHTML = `
+      <div class="order-summary-mini" style="text-align:left;">
+        <div class="row"><span>Order reference</span><span style="font-family:monospace;">${o.code}</span></div>
+        <div class="row"><span>Name</span><span>${o.name}</span></div>
+        <div class="row" style="font-weight:800;"><span>Amount</span><span>₹${o.total.toLocaleString("en-IN")}</span></div>
+      </div>
+      <p style="font-size:.82rem;color:var(--ink-soft);margin-top:14px;">Save this reference — quote it if you contact us about your order.</p>
+    `;
+  });
+</script>
+</body>
+</html>

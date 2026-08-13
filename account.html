@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Track Your Order — TaaraByHK</title>
+<link rel="icon" type="image/png" href="images/brand/favicon-32.png">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body data-nav="account">
+
+<header class="site-header" id="site-header"></header>
+
+<div class="page-title-band">
+  <div class="wrap">
+    <span class="eyebrow on-dark">Where's my order</span>
+    <h1>Track Your Order</h1>
+  </div>
+</div>
+
+<main class="wrap" style="max-width:520px;padding:44px 24px 90px;">
+  <div class="form-field">
+    <label>Order reference (e.g. TH1A2B3C4D)</label>
+    <input id="orderCodeInput" placeholder="Enter your order code">
+  </div>
+  <button class="btn btn-gold" id="trackBtn">Track Order</button>
+  <div id="trackResult" style="margin-top:26px;"></div>
+</main>
+
+<footer class="site-footer" id="site-footer"></footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="js/main.js"></script>
+<script src="js/supabase-config.js"></script>
+<script src="js/orders.js"></script>
+<script>
+  const statusLabel = { pending: "Payment pending verification", verified: "Payment verified — being packed", shipped: "Shipped", delivered: "Delivered" };
+
+  document.getElementById("trackBtn").addEventListener("click", async () => {
+    const code = document.getElementById("orderCodeInput").value.trim().toUpperCase();
+    const box = document.getElementById("trackResult");
+    if (!code) return;
+    box.innerHTML = `<p style="color:var(--ink-soft);">Looking up your order…</p>`;
+    const order = await fetchOrderByCode(code);
+    if (!order) {
+      box.innerHTML = `<p style="color:var(--ink-soft);">We couldn't find an order with that reference. Double-check the code, or message us on WhatsApp.</p>`;
+      return;
+    }
+    const status = order.status || "pending";
+    box.innerHTML = `
+      <div class="order-summary-mini" style="text-align:left;">
+        <div class="row"><span>Reference</span><span style="font-family:monospace;">${order.order_code}</span></div>
+        <div class="row"><span>Status</span><span class="status-pill status-${status}">${statusLabel[status] || status}</span></div>
+        <div class="row"><span>Total</span><span>₹${Number(order.subtotal).toLocaleString("en-IN")}</span></div>
+      </div>
+    `;
+  });
+</script>
+</body>
+</html>

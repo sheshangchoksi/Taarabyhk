@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TaaraByHK</title>
+<link rel="icon" type="image/png" href="images/brand/favicon-32.png">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body data-nav="shop">
+
+<header class="site-header" id="site-header"></header>
+
+<main class="wrap">
+  <div id="pdpRoot" class="pdp">
+    <div>
+      <div class="pdp-gallery-main skeleton"></div>
+    </div>
+    <div class="pdp-info">
+      <div class="skeleton" style="height:20px;width:120px;margin-bottom:14px;"></div>
+      <div class="skeleton" style="height:40px;width:80%;margin-bottom:14px;"></div>
+    </div>
+  </div>
+</main>
+
+<footer class="site-footer" id="site-footer" style="margin-top:40px;"></footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+<script src="js/main.js"></script>
+<script src="js/products.js"></script>
+<script src="js/cart.js"></script>
+<script>
+  const id = new URLSearchParams(location.search).get("id");
+  let currentQty = 1;
+
+  document.addEventListener("DOMContentLoaded", () => {
+    if (!id) { location.href = "shop.html"; return; }
+    getProductById(id).then((p) => {
+      if (!p) {
+        document.getElementById("pdpRoot").innerHTML = `<div class="empty-state"><p>We couldn't find that piece. <a href="shop.html">Back to shop →</a></p></div>`;
+        return;
+      }
+      document.title = p.name + " — TaaraByHK";
+      document.getElementById("pdpRoot").innerHTML = `
+        <div>
+          <div class="pdp-gallery-main"><img id="mainImg" src="${p.image}" alt="${p.name}"></div>
+          <div class="pdp-thumbs">
+            <img src="${p.image}" class="active" data-src="${p.image}">
+            <img src="${p.image2}" data-src="${p.image2}">
+          </div>
+        </div>
+        <div class="pdp-info">
+          <span class="eyebrow">${p.category}${p.badge ? " · " + p.badge : ""}</span>
+          <h1>${p.name}</h1>
+          <div class="pdp-price">${money(p.price)}</div>
+          <p class="pdp-desc">${p.description}</p>
+          <div class="qty-row">
+            <div class="qty-stepper">
+              <button id="qtyMinus" aria-label="Decrease quantity">−</button>
+              <span id="qtyVal">1</span>
+              <button id="qtyPlus" aria-label="Increase quantity">+</button>
+            </div>
+            <span style="font-size:.82rem;color:var(--ink-soft);">${p.inStock ? "In stock, ships in 2–4 days" : "Currently out of stock"}</span>
+          </div>
+          <button class="btn btn-gold btn-block" id="addBtn" ${p.inStock ? "" : "disabled"}>Add to Bag — ${money(p.price)}</button>
+          <div class="pdp-meta">
+            <dl>
+              <dt>Material</dt><dd>Gold-plated brass, glass &amp; resin beads</dd>
+              <dt>Care</dt><dd>Avoid perfume &amp; water contact for longevity</dd>
+              <dt>Ships from</dt><dd>Vadodara, Gujarat</dd>
+            </dl>
+          </div>
+        </div>
+      `;
+      document.querySelectorAll(".pdp-thumbs img").forEach((img) => {
+        img.addEventListener("click", () => {
+          document.getElementById("mainImg").src = img.dataset.src;
+          document.querySelectorAll(".pdp-thumbs img").forEach((i) => i.classList.remove("active"));
+          img.classList.add("active");
+        });
+      });
+      document.getElementById("qtyMinus").addEventListener("click", () => {
+        currentQty = Math.max(1, currentQty - 1);
+        document.getElementById("qtyVal").textContent = currentQty;
+      });
+      document.getElementById("qtyPlus").addEventListener("click", () => {
+        currentQty += 1;
+        document.getElementById("qtyVal").textContent = currentQty;
+      });
+      document.getElementById("addBtn").addEventListener("click", () => {
+        addToCart(p, currentQty);
+        toast(`Added ${currentQty} × "${p.name}" to your bag`);
+      });
+    });
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Shop All Jewellery — TaaraByHK</title>
+<link rel="icon" type="image/png" href="images/brand/favicon-32.png">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body data-nav="shop">
+
+<header class="site-header" id="site-header"></header>
+
+<div class="page-title-band">
+  <div class="wrap">
+    <span class="eyebrow on-dark">The full edit</span>
+    <h1 id="pageTitle">All Jewellery</h1>
+  </div>
+</div>
+
+<main class="wrap">
+  <div class="filter-bar" id="filterBar"></div>
+  <div class="product-grid" id="shopGrid">
+    <div class="card"><div class="card-media skeleton"></div></div>
+    <div class="card"><div class="card-media skeleton"></div></div>
+    <div class="card"><div class="card-media skeleton"></div></div>
+    <div class="card"><div class="card-media skeleton"></div></div>
+  </div>
+  <div class="empty-state" id="emptyState" style="display:none;">
+    <p>No pieces in this case yet — check back soon.</p>
+  </div>
+</main>
+
+<footer class="site-footer" id="site-footer" style="margin-top:60px;"></footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+<script src="js/main.js"></script>
+<script src="js/products.js"></script>
+<script src="js/cart.js"></script>
+<script>
+  function paramCategory() {
+    return new URLSearchParams(location.search).get("category") || "All";
+  }
+
+  function drawFilters(categories, active) {
+    const bar = document.getElementById("filterBar");
+    const all = ["All", ...categories];
+    bar.innerHTML = all.map((c) =>
+      `<button class="filter-chip ${c === active ? 'active' : ''}" data-cat="${c}">${c}</button>`
+    ).join("") + `<div class="filter-spacer"></div>
+      <select class="sort-select" id="sortSelect">
+        <option value="default">Sort: Featured</option>
+        <option value="low">Price: Low to High</option>
+        <option value="high">Price: High to Low</option>
+        <option value="name">Name: A–Z</option>
+      </select>`;
+    bar.querySelectorAll("[data-cat]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const cat = btn.dataset.cat;
+        const url = new URL(location.href);
+        if (cat === "All") url.searchParams.delete("category");
+        else url.searchParams.set("category", cat);
+        history.pushState({}, "", url);
+        renderGrid();
+        drawFilters(categories, cat);
+      });
+    });
+    document.getElementById("sortSelect").addEventListener("change", renderGrid);
+  }
+
+  function renderGrid() {
+    getProducts().then((products) => {
+      const active = paramCategory();
+      let list = active === "All" ? products : products.filter((p) => p.category === active);
+      const sort = document.getElementById("sortSelect") ? document.getElementById("sortSelect").value : "default";
+      if (sort === "low") list = [...list].sort((a, b) => a.price - b.price);
+      if (sort === "high") list = [...list].sort((a, b) => b.price - a.price);
+      if (sort === "name") list = [...list].sort((a, b) => a.name.localeCompare(b.name));
+
+      const grid = document.getElementById("shopGrid");
+      const empty = document.getElementById("emptyState");
+      document.getElementById("pageTitle").textContent = active === "All" ? "All Jewellery" : active;
+
+      if (list.length === 0) {
+        grid.style.display = "none";
+        empty.style.display = "block";
+        return;
+      }
+      grid.style.display = "grid";
+      empty.style.display = "none";
+      grid.innerHTML = list.map((p) => productCardHTML(p)).join("");
+      wireQuickAdd(grid);
+    });
+  }
+
+  document.addEventListener("DOMContentLoaded", () => {
+    getProducts().then((products) => {
+      const categories = [...new Set(products.map((p) => p.category))];
+      drawFilters(categories, paramCategory());
+      renderGrid();
+    });
+  });
+</script>
+</body>
+</html>

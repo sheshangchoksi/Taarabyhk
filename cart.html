@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Your Bag — TaaraByHK</title>
+<link rel="icon" type="image/png" href="images/brand/favicon-32.png">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body data-nav="cart">
+
+<header class="site-header" id="site-header"></header>
+
+<div class="page-title-band">
+  <div class="wrap">
+    <span class="eyebrow on-dark">Step 1 of 2</span>
+    <h1>Your Bag</h1>
+  </div>
+</div>
+
+<main class="wrap">
+  <div class="cart-layout" id="cartLayout"></div>
+</main>
+
+<footer class="site-footer" id="site-footer" style="margin-top:40px;"></footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+<script src="js/main.js"></script>
+<script src="js/products.js"></script>
+<script src="js/cart.js"></script>
+<script>
+  function renderCart() {
+    const cart = readCart();
+    const layout = document.getElementById("cartLayout");
+    if (cart.length === 0) {
+      layout.innerHTML = `
+        <div class="empty-state" style="grid-column:1/-1;">
+          <p>Your bag is empty.</p>
+          <a href="shop.html" class="btn btn-outline" style="margin-top:16px;">Continue shopping</a>
+        </div>`;
+      return;
+    }
+    const subtotal = cartSubtotal(cart);
+    layout.innerHTML = `
+      <div>
+        ${cart.map((i) => `
+          <div class="cart-line" data-id="${i.id}">
+            <img src="${i.image}" alt="${i.name}">
+            <div>
+              <div class="cart-line-name">${i.name}</div>
+              <div class="cart-line-cat">${i.category}</div>
+              <div class="cart-line-price">${money(i.price)}</div>
+              <a class="cart-line-remove" data-remove="${i.id}">Remove</a>
+            </div>
+            <div class="qty-stepper">
+              <button data-minus="${i.id}">−</button>
+              <span>${i.qty}</span>
+              <button data-plus="${i.id}">+</button>
+            </div>
+          </div>
+        `).join("")}
+        <a href="shop.html" style="display:inline-block;margin-top:18px;font-size:.86rem;font-weight:700;border-bottom:1px solid var(--gold);">← Continue shopping</a>
+      </div>
+      <div class="cart-summary">
+        <h3 style="margin-bottom:18px;">Order Summary</h3>
+        <div class="summary-row"><span>Subtotal</span><span>${money(subtotal)}</span></div>
+        <div class="summary-row"><span>Shipping</span><span>${subtotal >= 999 ? "Free" : money(60)}</span></div>
+        <div class="summary-row total"><span>Total</span><span>${money(subtotal >= 999 ? subtotal : subtotal + 60)}</span></div>
+        <a href="checkout.html" class="btn btn-gold btn-block" style="margin-top:16px;">Proceed to Checkout</a>
+      </div>
+    `;
+    layout.querySelectorAll("[data-remove]").forEach((b) => b.addEventListener("click", () => { removeFromCart(b.dataset.remove); renderCart(); }));
+    layout.querySelectorAll("[data-minus]").forEach((b) => b.addEventListener("click", () => {
+      const item = cart.find((i) => i.id === b.dataset.minus);
+      updateCartQty(item.id, item.qty - 1); renderCart();
+    }));
+    layout.querySelectorAll("[data-plus]").forEach((b) => b.addEventListener("click", () => {
+      const item = cart.find((i) => i.id === b.dataset.plus);
+      updateCartQty(item.id, item.qty + 1); renderCart();
+    }));
+  }
+  document.addEventListener("DOMContentLoaded", renderCart);
+</script>
+</body>
+</html>

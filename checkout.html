@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Checkout — TaaraByHK</title>
+<link rel="icon" type="image/png" href="images/brand/favicon-32.png">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body data-nav="cart">
+
+<header class="site-header" id="site-header"></header>
+
+<div class="page-title-band">
+  <div class="wrap">
+    <span class="eyebrow on-dark">Step 2 of 2</span>
+    <h1>Checkout</h1>
+  </div>
+</div>
+
+<main class="wrap">
+  <div id="checkoutRoot"></div>
+</main>
+
+<footer class="site-footer" id="site-footer" style="margin-top:40px;"></footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="js/main.js"></script>
+<script src="js/products.js"></script>
+<script src="js/cart.js"></script>
+<script src="js/supabase-config.js"></script>
+<script src="js/qr.js"></script>
+<script src="js/orders.js"></script>
+<script>
+  let ORDER_CODE = null;
+  let ORDER_TOTAL = 0;
+  let ORDER_ITEMS = [];
+
+  function renderForm() {
+    const cart = readCart();
+    if (cart.length === 0) {
+      document.getElementById("checkoutRoot").innerHTML = `
+        <div class="empty-state"><p>Your bag is empty.</p><a href="shop.html" class="btn btn-outline" style="margin-top:16px;">Shop now</a></div>`;
+      return;
+    }
+    const subtotal = cartSubtotal(cart);
+    const shipping = subtotal >= 999 ? 0 : 60;
+    const total = subtotal + shipping;
+    ORDER_TOTAL = total;
+    ORDER_ITEMS = cart;
+    ORDER_CODE = generateOrderCode();
+
+    document.getElementById("checkoutRoot").innerHTML = `
+      <div class="checkout-layout">
+        <div>
+          <h3 style="margin-bottom:18px;">Delivery details</h3>
+          <form id="shipForm">
+            <div class="form-field"><label>Full name</label><input required name="name" placeholder="Your name"></div>
+            <div class="form-row2">
+              <div class="form-field"><label>Phone</label><input required name="phone" type="tel" placeholder="10-digit mobile"></div>
+              <div class="form-field"><label>Pincode</label><input required name="pincode" placeholder="390001"></div>
+            </div>
+            <div class="form-field"><label>Address</label><textarea required name="address" rows="3" placeholder="House no, street, area"></textarea></div>
+            <div class="form-field"><label>City</label><input required name="city" placeholder="City"></div>
+          </form>
+          <div class="order-summary-mini">
+            ${cart.map((i) => `<div class="row"><span>${i.name} × ${i.qty}</span><span>${money(i.price * i.qty)}</span></div>`).join("")}
+            <div class="row"><span>Shipping</span><span>${shipping === 0 ? "Free" : money(shipping)}</span></div>
+            <div class="row" style="font-weight:800;border-top:1px solid var(--line);padding-top:8px;margin-top:6px;"><span>Total</span><span>${money(total)}</span></div>
+          </div>
+        </div>
+        <div class="pay-card">
+          <span class="eyebrow on-dark">Scan &amp; pay</span>
+          <p style="font-size:.86rem;color:var(--ivory-dim);margin-top:6px;">Fill your details, then scan this code with any UPI app (GPay, PhonePe, Paytm) to pay.</p>
+          <div class="pay-amount">${money(total)}</div>
+          <div class="pay-sub">Order ${ORDER_CODE}</div>
+          <div class="qr-box" id="qrBox"></div>
+          <div class="upi-id-row"><span class="txn-id" id="upiIdText">${UPI_ID}</span><button class="copy-btn" id="copyUpi">Copy UPI ID</button></div>
+          <div class="upi-id-row"><span>Reference</span><span class="txn-id">${ORDER_CODE}</span></div>
+          <button class="btn btn-gold btn-block" id="confirmPayBtn" style="margin-top:14px;">I've Paid — Confirm Order</button>
+          <p style="font-size:.74rem;color:var(--ivory-dim);margin-top:12px;line-height:1.6;">Orders are confirmed manually against this reference within a few hours. You'll get a WhatsApp/email confirmation once verified.</p>
+        </div>
+      </div>
+    `;
+
+    const qrBox = document.getElementById("qrBox");
+    renderUpiQr(qrBox, total, ORDER_CODE);
+
+    document.getElementById("copyUpi").addEventListener("click", () => {
+      navigator.clipboard.writeText(UPI_ID);
+      toast("UPI ID copied");
+    });
+
+    document.getElementById("confirmPayBtn").addEventListener("click", async () => {
+      const form = document.getElementById("shipForm");
+      if (!form.reportValidity()) return;
+      const fd = new FormData(form);
+      const btn = document.getElementById("confirmPayBtn");
+      btn.disabled = true;
+      btn.textContent = "Confirming…";
+      const order = {
+        order_code: ORDER_CODE,
+        name: fd.get("name"),
+        phone: fd.get("phone"),
+        address: fd.get("address"),
+        city: fd.get("city"),
+        pincode: fd.get("pincode"),
+        items: ORDER_ITEMS,
+        subtotal: ORDER_TOTAL
+      };
+      const result = await submitOrder(order);
+      if (result.ok) {
+        clearCart();
+        sessionStorage.setItem("taara_last_order", JSON.stringify({ code: ORDER_CODE, total, name: order.name }));
+        location.href = "order-confirmed.html";
+      } else {
+        btn.disabled = false;
+        btn.textContent = "I've Paid — Confirm Order";
+        toast("Something went wrong — please try again");
+      }
+    });
+  }
+
+  document.addEventListener("DOMContentLoaded", renderForm);
+</script>
+</body>
+</html>
