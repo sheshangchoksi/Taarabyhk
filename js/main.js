@@ -3,9 +3,9 @@
 const SITE = {
   brand: "Taara",
   brandSuffix: "byHK",
-  whatsapp: "919999999999", // TODO: replace with real WhatsApp number (country code + number, no + or spaces)
-  instagram: "https://instagram.com/taarabyhk", // TODO: replace with real handle
-  email: "hello@taarabyhk.com" // TODO: replace with real support email
+  whatsapp: "918511832039", // TODO: replace with real WhatsApp number (country code + number, no + or spaces)
+  instagram: "https://instagram.com/taara_byhk", // TODO: replace with real handle
+  email: "himanshikaliya497@gmail.com" // TODO: replace with real support email
 };
 
 function threadSVG(width = 600, color = "#c9a15a") {
