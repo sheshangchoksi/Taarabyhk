@@ -3,7 +3,7 @@
 const SITE = {
   brand: "Taara",
   brandSuffix: "byHK",
-  whatsapp: "918511832039", // TODO: replace with real WhatsApp number (country code + number, no + or spaces)
+  whatsapp: "919875207137", // TODO: replace with real WhatsApp number (country code + number, no + or spaces)
   instagram: "https://instagram.com/taara_byhk", // TODO: replace with real handle
   email: "himanshikaliya497@gmail.com" // TODO: replace with real support email
 };
